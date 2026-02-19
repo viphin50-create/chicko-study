@@ -237,7 +237,8 @@
             try {
                 const res = await fetch(CONFIG.menuUrl);
                 const text = await res.text();
-                allProducts = parseCSV(text);
+                // Парсим и сразу склеиваем дубликаты
+                allProducts = processProducts(parseCSV(text));
                 renderMenu(allProducts);
                 renderSidebar(allProducts);
                 document.getElementById('start-quiz-btn').disabled = false;
@@ -252,6 +253,33 @@
             if (!val) return true;
             const clean = val.toString().trim().replace(/^"|"$/g, '');
             return clean === '' || clean === '-' || clean.toLowerCase() === 'нет';
+        }
+
+        // Функция для склейки дубликатов по названию
+        function processProducts(data) {
+            const uniqueItems = new Map();
+            
+            data.forEach(item => {
+                const key = item.name.toLowerCase().trim();
+                if (!uniqueItems.has(key)) {
+                    uniqueItems.set(key, { ...item });
+                } else {
+                    const existing = uniqueItems.get(key);
+                    // Дозаполняем поля, если в текущей строке они есть, а в сохраненной - нет
+                    if (isEmpty(existing.desc)) existing.desc = item.desc;
+                    if (isEmpty(existing.composition)) existing.composition = item.composition;
+                    if (isEmpty(existing.serving)) existing.serving = item.serving;
+                    if (isEmpty(existing.allergens)) existing.allergens = item.allergens;
+                    if (isEmpty(existing.service)) existing.service = item.service;
+                    if (isEmpty(existing.kbj)) existing.kbj = item.kbj;
+                    // Если картинка-заглушка, а в новой строке есть реальная ссылка - обновляем
+                    if (existing.image.includes('placehold.co') && !item.image.includes('placehold.co')) {
+                        existing.image = item.image;
+                    }
+                }
+            });
+            
+            return Array.from(uniqueItems.values());
         }
 
         function parseCSV(text) {
@@ -290,7 +318,8 @@
                     serving: item['подача'] || '',
                     composition: item['состав'] || '',
                     allergens: item['аллергены'] || item['allergen'] || '',
-                    service: item['service'] || item['сервис'] || ''
+                    service: item['service'] || item['сервис'] || '',
+                    kbj: item['kbj'] || item['кбжу'] || ''
                 };
             });
         }
@@ -301,7 +330,6 @@
             container.innerHTML = data.map((p, i) => `
                 <div onclick="openModal(${i})" class="product-card bg-white rounded-2xl overflow-hidden flex flex-col active:scale-95 transition-all border border-gray-100 card-shadow">
                     <div class="h-32 sm:h-44 overflow-hidden relative flex-shrink-0 bg-white">
-                        <!-- Изменено на object-contain с падингом, чтобы PNG не обрезались -->
                         <img src="${p.image}" class="w-full h-full object-contain p-2" loading="lazy">
                         <div class="absolute top-2 left-2 bg-black/40 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-tighter">${p.category}</div>
                     </div>
@@ -392,7 +420,6 @@
             body.innerHTML = `
                 <div class="space-y-6 pb-6">
                     <div class="rounded-3xl overflow-hidden h-64 bg-white border border-gray-100 shadow-inner">
-                        <!-- В модалке тоже object-contain, чтобы фото было видно целиком -->
                         <img src="${p.image}" class="w-full h-full object-contain p-4">
                     </div>
                     <div>
@@ -400,9 +427,9 @@
                         <h2 class="text-3xl font-black text-gray-900 leading-tight mb-6">${p.name}</h2>
                         <div class="space-y-5">
                             ${!isEmpty(p.desc) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-300 mb-1 tracking-widest">Описание</h4><p class="text-gray-600 text-sm leading-relaxed">${p.desc}</p></div>` : ''}
-                            ${!isEmpty(p.composition) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-300 mb-1 tracking-widest">Состав</h4><p class="text-gray-500 italic text-sm leading-relaxed">${p.composition}</p></div>` : ''}
+                            ${!isEmpty(p.kbj) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-300 mb-1 tracking-widest">Состав</h4><p class="text-gray-600 text-sm leading-relaxed">${p.kbj}</p></div>` : ''}
                             ${!isEmpty(p.serving) ? `<div><h4 class="text-[8px] font-bold uppercase text-blue-400 mb-1 tracking-widest">Подача</h4><div class="p-4 bg-blue-50 rounded-2xl text-[11px] font-bold border border-blue-100 text-blue-700 leading-relaxed">${p.serving}</div></div>` : ''}
-                            ${!isEmpty(p.service) ? `<div><h4 class="text-[8px] font-bold uppercase text-orange-500 mb-1 tracking-widest">Сервис</h4><div class="p-4 bg-orange-50 rounded-2xl text-[11px] italic border border-orange-100 text-orange-800 leading-relaxed">${p.service}</div></div>` : ''}
+                            ${!isEmpty(p.service) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-400 mb-1 tracking-widest">Сервис</h4><div class="p-4 bg-gray-50 rounded-2xl text-[11px] italic border border-gray-200 text-gray-600 leading-relaxed">${p.service}</div></div>` : ''}
                             ${!isEmpty(p.allergens) ? `<div class="pt-4 border-t border-gray-100"><h4 class="text-[8px] font-bold uppercase text-red-400 mb-2 tracking-widest">Аллергены</h4><div class="flex flex-wrap gap-2">${p.allergens.split(',').map(a => `<span class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-[9px] font-black border border-red-100">${a.trim()}</span>`).join('')}</div></div>` : ''}
                         </div>
                     </div>
