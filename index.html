@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ЧИКО 2.0 - Портал</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F8F8F8;
+            min-height: 100vh;
+            color: #333;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .card-shadow {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes slideUp {
+            from { transform: translateY(15px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
+        
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Side sidebar */
+        #sidebar-container {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 60;
+        }
+
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-visible {
+            transform: translateX(0);
+        }
+
+        .sidebar-active {
+            color: #ef4444 !important;
+            background: #fff1f2 !important;
+            border-left: 4px solid #ef4444;
+        }
+
+        #sidebar-overlay {
+            transition: opacity 0.3s ease;
+            z-index: 50;
+        }
+
+        /* Navigation buttons in header */
+        .nav-btn-header.active {
+            color: #ef4444;
+            background: #fff1f2;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MAIN APP -->
+    <div id="app-container" class="min-h-screen flex flex-col">
+        
+        <!-- Header -->
+        <header class="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-800 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <!-- Large Logo -->
+                <img src="https://image2url.com/r2/default/files/1771452112105-9ec92c4c-6685-49c7-aae6-d5f7189fb215.png" alt="ЧИКО Лого" class="h-14 sm:h-20 w-auto object-contain">
+            </div>
+            
+            <!-- Navigation in Header -->
+            <nav class="flex items-center gap-1">
+                <button onclick="showPage('menu')" class="nav-btn-header active p-2 sm:px-4 sm:py-2 rounded-xl flex flex-col sm:flex-row items-center gap-1 transition-all" data-page="menu">
+                    <i class="fas fa-utensils text-sm"></i>
+                    <span class="text-[9px] sm:text-xs font-bold uppercase tracking-widest hidden xs:block">Меню</span>
+                </button>
+                <button onclick="showPage('training')" class="nav-btn-header p-2 sm:px-4 sm:py-2 rounded-xl flex flex-col sm:flex-row items-center gap-1 text-gray-400 transition-all" data-page="training">
+                    <i class="fas fa-book-open text-sm"></i>
+                    <span class="text-[9px] sm:text-xs font-bold uppercase tracking-widest hidden xs:block">База</span>
+                </button>
+                <button onclick="showPage('testing')" class="nav-btn-header p-2 sm:px-4 sm:py-2 rounded-xl flex flex-col sm:flex-row items-center gap-1 text-gray-400 transition-all" data-page="testing">
+                    <i class="fas fa-vial text-sm"></i>
+                    <span class="text-[9px] sm:text-xs font-bold uppercase tracking-widest hidden xs:block">Тест</span>
+                </button>
+            </nav>
+        </header>
+
+        <!-- Sidebar Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 opacity-0 pointer-events-none" onclick="toggleSidebar()"></div>
+
+        <div class="flex flex-1 overflow-hidden relative">
+            
+            <!-- Sidebar -->
+            <aside id="sidebar-container" class="fixed top-0 left-0 bottom-0 w-64 bg-white shadow-2xl flex flex-col overflow-y-auto no-scrollbar sidebar-hidden">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Категории</p>
+                    <button onclick="toggleSidebar()" class="text-gray-300 hover:text-red-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="sidebar-categories" class="flex flex-col py-2">
+                    <!-- Categories -->
+                </div>
+                <div class="mt-auto p-6 border-t border-gray-100">
+                    <p class="text-[9px] text-gray-300 font-bold uppercase tracking-tighter italic">ЧИКО 2.0 • 2024</p>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="flex-1 overflow-y-auto no-scrollbar bg-[#F8F8F8] p-3 sm:p-6">
+                
+                <!-- MENU PAGE -->
+                <div id="menu-content" class="page-content space-y-4 animate-slide-up">
+                    <div class="max-w-6xl mx-auto space-y-4">
+                        <div class="relative">
+                            <input type="text" id="search-input" placeholder="Поиск блюд..." 
+                                   class="w-full bg-white border border-gray-100 px-5 py-3 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-400 transition-all text-sm">
+                            <i class="fas fa-search absolute right-5 top-3.5 text-gray-300"></i>
+                        </div>
+
+                        <div id="loading-spinner" class="text-center py-20 hidden">
+                            <div class="w-8 h-8 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin mx-auto"></div>
+                        </div>
+
+                        <!-- Compact Grid -->
+                        <div id="card-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4"></div>
+                    </div>
+                </div>
+
+                <!-- TRAINING PAGE -->
+                <div id="training-content" class="page-content hidden space-y-6 animate-slide-up">
+                    <div class="max-w-2xl mx-auto bg-white p-6 rounded-[2rem] border border-gray-100 card-shadow">
+                        <h2 class="text-xl font-black mb-6 italic tracking-tight">База Знаний 2.0</h2>
+                        <div id="training-links-container" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- TESTING PAGE -->
+                <div id="testing-content" class="page-content hidden max-w-lg mx-auto animate-slide-up">
+                    <div id="quiz-start-screen" class="bg-white p-8 rounded-[2rem] text-center border border-gray-100 card-shadow">
+                        <div class="w-16 h-16 bg-red-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h2 class="text-2xl font-black mb-2">Аттестация</h2>
+                        <p class="text-gray-500 text-xs mb-8 leading-relaxed">Проверка знаний по новой концепции.</p>
+                        <button id="start-quiz-btn" onclick="startQuiz()" disabled class="w-full bg-red-500 text-white py-4 rounded-xl font-black shadow-lg disabled:opacity-30">
+                            Начать тест
+                        </button>
+                    </div>
+
+                    <div id="quiz-game-screen" class="hidden space-y-4">
+                        <div class="bg-white p-6 rounded-[2rem] border border-gray-100 card-shadow space-y-6">
+                            <div class="flex justify-between items-center text-[9px] font-bold uppercase text-gray-400 tracking-widest">
+                                <span>Вопрос <span id="current-question-index">1</span>/10</span>
+                                <span class="text-green-500">Счет: <span id="correct-count">0</span></span>
+                            </div>
+                            <h2 id="quiz-question-dish" class="text-xl font-black text-gray-800 leading-tight"></h2>
+                            <div id="quiz-options-container" class="grid gap-2"></div>
+                        </div>
+                    </div>
+
+                    <div id="quiz-results-screen" class="hidden bg-white p-10 rounded-[2rem] text-center border border-gray-100 card-shadow">
+                        <h2 class="text-lg font-bold text-gray-400 uppercase tracking-widest mb-2">Ваш результат</h2>
+                        <div class="text-6xl font-black text-red-500 my-6" id="final-score"></div>
+                        <button onclick="startQuiz()" class="w-full bg-black text-white py-4 rounded-xl font-bold">Еще раз</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL (Bottom Sheet) -->
+    <div id="product-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/60" onclick="closeModal()"></div>
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 max-h-[92vh] overflow-y-auto no-scrollbar translate-y-full transition-transform duration-300 shadow-2xl" id="modal-content">
+            <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            menuUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT0ukbh5K5GdykFFCDj-H0xUODUAneKWmbeJFfe4tLTCMEWKJgCkefhrCOtsKDB_QRRYySAvI1xOTh3/pub?gid=449681586&single=true&output=csv',
+            trainingUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT0ukbh5K5GdykFFCDj-H0xUODUAneKWmbeJFfe4tLTCMEWKJgCkefhrCOtsKDB_QRRYySAvI1xOTh3/pub?gid=1664366590&single=true&output=csv'
+        };
+
+        let allProducts = [];
+        let filteredProducts = [];
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let quizData = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar-container');
+            const overlay = document.getElementById('sidebar-overlay');
+            const isVisible = sidebar.classList.contains('sidebar-visible');
+
+            if (isVisible) {
+                sidebar.classList.replace('sidebar-visible', 'sidebar-hidden');
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                overlay.classList.remove('opacity-100', 'pointer-events-auto');
+            } else {
+                sidebar.classList.replace('sidebar-hidden', 'sidebar-visible');
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+                overlay.classList.add('opacity-100', 'pointer-events-auto');
+            }
+        }
+
+        async function loadData() {
+            const spinner = document.getElementById('loading-spinner');
+            spinner.classList.remove('hidden');
+            try {
+                const res = await fetch(CONFIG.menuUrl);
+                const text = await res.text();
+                allProducts = parseCSV(text);
+                renderMenu(allProducts);
+                renderSidebar(allProducts);
+                document.getElementById('start-quiz-btn').disabled = false;
+            } catch (e) {
+                console.error("CSV Load Error:", e);
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        }
+
+        function isEmpty(val) {
+            if (!val) return true;
+            const clean = val.toString().trim().replace(/^"|"$/g, '');
+            return clean === '' || clean === '-' || clean.toLowerCase() === 'нет';
+        }
+
+        function parseCSV(text) {
+            const rows = [];
+            let currentRow = [];
+            let currentField = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '"') {
+                    if (inQuotes && text[i+1] === '"') { currentField += '"'; i++; }
+                    else { inQuotes = !inQuotes; }
+                } else if (char === ',' && !inQuotes) {
+                    currentRow.push(currentField.trim()); currentField = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (currentField || currentRow.length > 0) {
+                        currentRow.push(currentField.trim()); rows.push(currentRow);
+                        currentRow = []; currentField = '';
+                    }
+                } else { currentField += char; }
+            }
+            if (currentField || currentRow.length > 0) {
+                currentRow.push(currentField.trim()); rows.push(currentRow);
+            }
+
+            const header = rows[0].map(h => h.toLowerCase().trim().replace(/^"|"$/g, ''));
+            return rows.slice(1).map(row => {
+                const item = {};
+                header.forEach((key, i) => { item[key] = (row[i] || '').replace(/^"|"$/g, '').trim(); });
+                return {
+                    name: item['name'] || item['название'] || 'Без названия',
+                    image: item['image'] || item['фото'] || 'https://placehold.co/400x400?text=ЧИКО',
+                    category: item['category'] || item['категория'] || 'Общее',
+                    desc: item['описание'] || '',
+                    serving: item['подача'] || '',
+                    composition: item['состав'] || '',
+                    allergens: item['аллергены'] || item['allergen'] || '',
+                    service: item['service'] || item['сервис'] || ''
+                };
+            });
+        }
+
+        function renderMenu(data) {
+            filteredProducts = data;
+            const container = document.getElementById('card-container');
+            container.innerHTML = data.map((p, i) => `
+                <div onclick="openModal(${i})" class="product-card bg-white rounded-2xl overflow-hidden flex flex-col active:scale-95 transition-all border border-gray-100 card-shadow">
+                    <div class="h-32 sm:h-44 overflow-hidden relative flex-shrink-0 bg-white">
+                        <!-- Изменено на object-contain с падингом, чтобы PNG не обрезались -->
+                        <img src="${p.image}" class="w-full h-full object-contain p-2" loading="lazy">
+                        <div class="absolute top-2 left-2 bg-black/40 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-tighter">${p.category}</div>
+                    </div>
+                    <div class="p-3 sm:p-4 flex flex-col flex-grow">
+                        <h3 class="font-black text-xs sm:text-base mb-1 text-gray-800 leading-tight line-clamp-2">${p.name}</h3>
+                        <div class="mt-auto flex justify-between items-center">
+                            <span class="text-red-500 font-bold text-[8px] uppercase tracking-tighter">Смотреть</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSidebar(data) {
+            const cats = ['Все', ...new Set(data.map(p => p.category))];
+            const container = document.getElementById('sidebar-categories');
+            container.innerHTML = cats.map(c => `
+                <button onclick="filterByCat('${c}', this)" class="w-full text-left px-6 py-3.5 transition-all flex items-center gap-4 group border-l-4 border-transparent hover:bg-gray-50">
+                    <span class="text-[11px] font-bold text-gray-500 group-hover:text-red-500 uppercase tracking-widest transition-colors">${c}</span>
+                </button>
+            `).join('');
+            
+            const firstBtn = container.querySelector('button');
+            if(firstBtn) firstBtn.classList.add('sidebar-active');
+        }
+
+        function filterByCat(cat, el) {
+            document.querySelectorAll('#sidebar-categories button').forEach(b => {
+                b.classList.remove('sidebar-active');
+            });
+            el.classList.add('sidebar-active');
+            renderMenu(cat === 'Все' ? allProducts : allProducts.filter(p => p.category === cat));
+            if (window.innerWidth < 1024) toggleSidebar();
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            renderMenu(allProducts.filter(p => 
+                p.name.toLowerCase().includes(val) || 
+                p.allergens.toLowerCase().includes(val) ||
+                p.category.toLowerCase().includes(val)
+            ));
+        });
+
+        function showPage(id) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`${id}-content`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn-header').forEach(b => {
+                b.classList.remove('active', 'text-red-500', 'bg-red-50');
+                b.classList.add('text-gray-400');
+            });
+            const activeBtn = document.querySelector(`.nav-btn-header[data-page="${id}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'text-red-500');
+                activeBtn.classList.remove('text-gray-400');
+            }
+
+            if (id === 'training') loadTraining();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        async function loadTraining() {
+            const container = document.getElementById('training-links-container');
+            container.innerHTML = '<div class="text-center py-10 opacity-50 font-bold text-xs">Загрузка...</div>';
+            try {
+                const res = await fetch(CONFIG.trainingUrl);
+                const text = await res.text();
+                const mats = parseCSV(text);
+                container.innerHTML = mats.map(m => `
+                    <a href="${m.link || '#'}" target="_blank" class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl active:scale-95 transition-transform border border-gray-100">
+                        <div class="w-10 h-10 bg-white text-red-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-100">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <span class="font-bold text-[11px] text-gray-800 leading-tight">${m.name || 'Материал'}</span>
+                        <i class="fas fa-chevron-right ml-auto text-gray-300 text-[10px]"></i>
+                    </a>
+                `).join('');
+            } catch(e) { container.innerHTML = 'Ошибка загрузки.'; }
+        }
+
+        function openModal(idx) {
+            const p = filteredProducts[idx];
+            const body = document.getElementById('modal-body');
+            const modal = document.getElementById('product-modal');
+            const content = document.getElementById('modal-content');
+
+            body.innerHTML = `
+                <div class="space-y-6 pb-6">
+                    <div class="rounded-3xl overflow-hidden h-64 bg-white border border-gray-100 shadow-inner">
+                        <!-- В модалке тоже object-contain, чтобы фото было видно целиком -->
+                        <img src="${p.image}" class="w-full h-full object-contain p-4">
+                    </div>
+                    <div>
+                        <span class="text-red-500 font-black text-[9px] uppercase tracking-[0.3em] mb-1 block">${p.category}</span>
+                        <h2 class="text-3xl font-black text-gray-900 leading-tight mb-6">${p.name}</h2>
+                        <div class="space-y-5">
+                            ${!isEmpty(p.desc) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-300 mb-1 tracking-widest">Описание</h4><p class="text-gray-600 text-sm leading-relaxed">${p.desc}</p></div>` : ''}
+                            ${!isEmpty(p.composition) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-300 mb-1 tracking-widest">Состав</h4><p class="text-gray-500 italic text-sm leading-relaxed">${p.composition}</p></div>` : ''}
+                            ${!isEmpty(p.serving) ? `<div><h4 class="text-[8px] font-bold uppercase text-blue-400 mb-1 tracking-widest">Подача</h4><div class="p-4 bg-blue-50 rounded-2xl text-[11px] font-bold border border-blue-100 text-blue-700 leading-relaxed">${p.serving}</div></div>` : ''}
+                            ${!isEmpty(p.service) ? `<div><h4 class="text-[8px] font-bold uppercase text-orange-500 mb-1 tracking-widest">Сервис</h4><div class="p-4 bg-orange-50 rounded-2xl text-[11px] italic border border-orange-100 text-orange-800 leading-relaxed">${p.service}</div></div>` : ''}
+                            ${!isEmpty(p.allergens) ? `<div class="pt-4 border-t border-gray-100"><h4 class="text-[8px] font-bold uppercase text-red-400 mb-2 tracking-widest">Аллергены</h4><div class="flex flex-wrap gap-2">${p.allergens.split(',').map(a => `<span class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-[9px] font-black border border-red-100">${a.trim()}</span>`).join('')}</div></div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.style.display = 'block';
+            setTimeout(() => content.style.transform = 'translateY(0)', 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const content = document.getElementById('modal-content');
+            content.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                document.getElementById('product-modal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        function startQuiz() {
+            const valid = allProducts.filter(p => !isEmpty(p.allergens));
+            quizData = [...valid].sort(() => 0.5 - Math.random()).slice(0, 10);
+            currentQuizIndex = 0; quizScore = 0;
+            document.getElementById('quiz-start-screen').classList.add('hidden');
+            document.getElementById('quiz-results-screen').classList.add('hidden');
+            document.getElementById('quiz-game-screen').classList.remove('hidden');
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const p = quizData[currentQuizIndex];
+            document.getElementById('current-question-index').textContent = currentQuizIndex + 1;
+            document.getElementById('correct-count').textContent = quizScore;
+            document.getElementById('quiz-question-dish').textContent = p.name;
+            const correct = p.allergens;
+            const others = [...new Set(allProducts.map(x => x.allergens))].filter(a => a !== correct && !isEmpty(a));
+            const choices = [correct, ...others.sort(() => 0.5 - Math.random()).slice(0, 3)].sort(() => 0.5 - Math.random());
+            document.getElementById('quiz-options-container').innerHTML = choices.map(c => `
+                <div onclick="checkAnswer(this, '${c === correct}')" class="bg-gray-50 p-4 rounded-2xl font-black text-xs cursor-pointer border border-gray-100 active:scale-95 transition-all text-center">
+                    ${c}
+                </div>
+            `).join('');
+        }
+
+        function checkAnswer(el, isCorrect) {
+            const opts = document.querySelectorAll('#quiz-options-container div');
+            opts.forEach(o => o.style.pointerEvents = 'none');
+            if(isCorrect === 'true') {
+                el.classList.replace('bg-gray-50', 'bg-green-500');
+                el.classList.add('text-white');
+                quizScore++;
+            } else {
+                el.classList.replace('bg-gray-50', 'bg-red-500');
+                el.classList.add('text-white');
+                opts.forEach(o => { 
+                    if(o.innerText === quizData[currentQuizIndex].allergens) {
+                        o.classList.replace('bg-gray-50', 'bg-green-500');
+                        o.classList.add('text-white');
+                    }
+                });
+            }
+            setTimeout(() => {
+                currentQuizIndex++;
+                if(currentQuizIndex < quizData.length) renderQuizQuestion();
+                else finishQuiz();
+            }, 1200);
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz-game-screen').classList.add('hidden');
+            document.getElementById('quiz-results-screen').classList.remove('hidden');
+            document.getElementById('final-score').textContent = `${quizScore}/10`;
+        }
+    </script>
+</body>
+</html>
