@@ -194,6 +194,10 @@
     <div id="product-modal" class="fixed inset-0 z-[100] hidden">
         <div class="absolute inset-0 bg-black/60" onclick="closeModal()"></div>
         <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 max-h-[92vh] overflow-y-auto no-scrollbar translate-y-full transition-transform duration-300 shadow-2xl" id="modal-content">
+            <!-- Close Button -->
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 active:scale-90 transition-all z-50">
+                <i class="fas fa-times text-lg"></i>
+            </button>
             <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
             <div id="modal-body"></div>
         </div>
@@ -237,7 +241,6 @@
             try {
                 const res = await fetch(CONFIG.menuUrl);
                 const text = await res.text();
-                // Парсим и сразу склеиваем дубликаты
                 allProducts = processProducts(parseCSV(text));
                 renderMenu(allProducts);
                 renderSidebar(allProducts);
@@ -255,7 +258,6 @@
             return clean === '' || clean === '-' || clean.toLowerCase() === 'нет';
         }
 
-        // Функция для склейки дубликатов по названию
         function processProducts(data) {
             const uniqueItems = new Map();
             
@@ -265,14 +267,12 @@
                     uniqueItems.set(key, { ...item });
                 } else {
                     const existing = uniqueItems.get(key);
-                    // Дозаполняем поля, если в текущей строке они есть, а в сохраненной - нет
                     if (isEmpty(existing.desc)) existing.desc = item.desc;
                     if (isEmpty(existing.composition)) existing.composition = item.composition;
                     if (isEmpty(existing.serving)) existing.serving = item.serving;
                     if (isEmpty(existing.allergens)) existing.allergens = item.allergens;
                     if (isEmpty(existing.service)) existing.service = item.service;
                     if (isEmpty(existing.kbj)) existing.kbj = item.kbj;
-                    // Если картинка-заглушка, а в новой строке есть реальная ссылка - обновляем
                     if (existing.image.includes('placehold.co') && !item.image.includes('placehold.co')) {
                         existing.image = item.image;
                     }
@@ -429,7 +429,7 @@
                             ${!isEmpty(p.desc) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-300 mb-1 tracking-widest">Описание</h4><p class="text-gray-600 text-sm leading-relaxed">${p.desc}</p></div>` : ''}
                             ${!isEmpty(p.kbj) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-300 mb-1 tracking-widest">Состав</h4><p class="text-gray-600 text-sm leading-relaxed">${p.kbj}</p></div>` : ''}
                             ${!isEmpty(p.serving) ? `<div><h4 class="text-[8px] font-bold uppercase text-blue-400 mb-1 tracking-widest">Подача</h4><div class="p-4 bg-blue-50 rounded-2xl text-[11px] font-bold border border-blue-100 text-blue-700 leading-relaxed">${p.serving}</div></div>` : ''}
-                            ${!isEmpty(p.service) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-400 mb-1 tracking-widest">Сервис</h4><div class="p-4 bg-gray-50 rounded-2xl text-[11px] italic border border-gray-200 text-gray-600 leading-relaxed">${p.service}</div></div>` : ''}
+                            ${!isEmpty(p.service) ? `<div><h4 class="text-[8px] font-bold uppercase text-gray-400 mb-1 tracking-widest">Сервис</h4><div class="p-4 bg-gray-50 rounded-2xl text-[11px] italic border border-gray-200 text-gray-600 leading-relaxed whitespace-pre-line">${p.service}</div></div>` : ''}
                             ${!isEmpty(p.allergens) ? `<div class="pt-4 border-t border-gray-100"><h4 class="text-[8px] font-bold uppercase text-red-400 mb-2 tracking-widest">Аллергены</h4><div class="flex flex-wrap gap-2">${p.allergens.split(',').map(a => `<span class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-[9px] font-black border border-red-100">${a.trim()}</span>`).join('')}</div></div>` : ''}
                         </div>
                     </div>
